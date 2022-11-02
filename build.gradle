@@ -1,0 +1,114 @@
+
+plugins {
+    id "idea"
+    id "java-library"
+    id "maven-publish"
+    id "signing"
+    id "org.jetbrains.kotlin.jvm" version "1.7.10"
+    id "org.jetbrains.kotlin.kapt" version "1.7.10"
+}
+
+group "com.waigel.healthcard"
+version "1.0.0"
+
+sourceCompatibility = 1.9
+targetCompatibility = 1.9
+
+tasks.jar {enabled = true}
+
+jar {
+    // Remove `plain` postfix from jar file name
+    archiveClassifier.set("")
+}
+
+java {
+    withSourcesJar()
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.jetbrains.kotlin:kotlin-test'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation 'org.slf4j:slf4j-api:2.0.3'
+    implementation 'org.slf4j:slf4j-simple:2.0.3'
+    implementation 'org.json:json:20220924'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.14.0-rc3'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.0-rc3'
+
+}
+
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    kotlinOptions {
+        freeCompilerArgs = ["-Xjsr305=strict"]
+        jvmTarget = "1.8"
+    }
+}
+
+ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
+
+publishing {
+    repositories {
+        maven {
+            def releaseRepo = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            def snapshotRepo = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+            url = isReleaseVersion ? releaseRepo : snapshotRepo
+            credentials {
+                username = findProperty("ossrhUsername") ?: System.getenv("OSSRH_USERNAME")
+                password = findProperty("ossrhPassword") ?: System.getenv("OSSRH_PASSWORD")
+            }
+        }
+    }
+
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            pom {
+                groupId = 'com.waigel.healthcard'
+                name = 'healthcard-java'
+                description = 'Java library for reading German health insurance cards (eGK)'
+                url = 'https://github.com/waigel/healthcard-java'
+                packaging = 'jar'
+
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://github.com/waigel/healthcard-java/blob/main/LICENSE'
+                    }
+                }
+
+                scm {
+                    url = 'https://github.com/waigel/healthcard-java'
+                    connection = 'scm:git://github.com:waigel/healthcard-java.git'
+                    developerConnection = 'scm:git://github.com:waigel/healthcard-java.git'
+                }
+
+                developers {
+                    developer {
+                        id = 'waigel'
+                        name = 'Johannes Waigel'
+                        email = 'johannes@waigel.com'
+                    }
+                }
+            }
+        }
+    }
+}
+
+signing {
+    sign publishing.publications.mavenJava
+}
+
+tasks.withType(Sign) {
+    onlyIf { isReleaseVersion }
+}
