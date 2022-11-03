@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory
 import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
 import java.util.zip.GZIPInputStream
+import javax.smartcardio.CardChannel
 import javax.smartcardio.CardTerminal
 
 
@@ -21,23 +22,35 @@ class HealthCardReader
  * Specify the card terminal to use.
  * @param cardTerminal The card terminal to use.
  * @return The HealthCardReader instance.
- */(
-    private var cardTerminal: CardTerminal, private val disablePatientData: Boolean = false,
-    private val disableInsuranceData: Boolean = false, private val disableGeneration: Boolean = false
-) {
+ */() {
 
     private val logger = LoggerFactory.getLogger(HealthCardReader::class.java)
     private val eventListeners = mutableListOf<HealthCardReaderEvents>()
     private var thread: Thread? = null
 
-    init {
+
+    /**
+     * Start a standalone card reader thread to read health cards.
+     */
+    fun startReader(
+        cardTerminal: CardTerminal
+    ) {
         try {
-            this.startEventListenerForCardInsertion()
+            this.startEventListenerForCardInsertion(cardTerminal)
         } catch (e: Exception) {
             logger.error("Error while starting the event listener for card insertion.", e)
             logger.info("Trying to start the event listener again in 5 seconds.")
             Thread.sleep(5000)
-            this.startEventListenerForCardInsertion()
+            this.startEventListenerForCardInsertion(cardTerminal)
+        }
+    }
+
+    /**
+     * Close the card reader thread.
+     */
+    fun closeReader() {
+        if (this.thread !== null && this.thread!!.isAlive) {
+            this.thread!!.interrupt()
         }
     }
 
@@ -67,6 +80,16 @@ class HealthCardReader
 
     }
 
+
+    /**
+     * Read the patient data from the card.
+     * @param cardChannel The card channel to use.
+     * @return The patient data.
+     */
+    fun readPatientData(channel: CardChannel): PatientData {
+        return getPatientData(HealthCardChannel(channel))
+    }
+
     private fun getPatientData(channel: HealthCardChannel): PatientData {
         val startTimestamp = System.currentTimeMillis()
         channel.transmit(APDUCommands.SELECT_MF)
@@ -84,13 +107,23 @@ class HealthCardReader
         //create a read command for the whole patient file
         val patientDataCompressed = readFile(channel, 2, pdLength) + ByteArray(16)
         val decompressedPatientXml =
-            GZIPInputStream(patientDataCompressed.inputStream()).bufferedReader(Charset.forName("ISO-8859-15")).readText()
+            GZIPInputStream(patientDataCompressed.inputStream()).bufferedReader(Charset.forName("ISO-8859-15"))
+                .readText()
         logger.info("Patient Data: $decompressedPatientXml")
         val endTimestamp = System.currentTimeMillis()
         val timeInSec = (endTimestamp - startTimestamp) / 1000.0
         logger.info("Time to read patient data: ${timeInSec}} seconds")
 
         return PatientData.fromXml(decompressedPatientXml)
+    }
+
+    /**
+     * Read the insurance data from the card.
+     * @param cardChannel The card channel to use.
+     * @return The insurance data.
+     */
+    fun readInsuranceData(channel: CardChannel): InsuranceData {
+        return getInsuranceData(HealthCardChannel(channel))
     }
 
     private fun getInsuranceData(channel: HealthCardChannel): InsuranceData {
@@ -110,30 +143,23 @@ class HealthCardReader
 
         val insuranceDataCompressed = readFile(channel, vdStart, vdLength) + ByteArray(16)
         val decompressedInsuranceData =
-            GZIPInputStream(insuranceDataCompressed.inputStream()).bufferedReader(Charset.forName("ISO-8859-15")).readText()
+            GZIPInputStream(insuranceDataCompressed.inputStream()).bufferedReader(Charset.forName("ISO-8859-15"))
+                .readText()
         logger.info("Insurance Data: $decompressedInsuranceData")
 
         return InsuranceData.fromXml(decompressedInsuranceData)
     }
 
-    /**
-     * Close the HealthCardReader thread
-     */
-    fun close() {
-        if (this.thread !== null && this.thread!!.isAlive) {
-            this.thread!!.interrupt()
-        }
-    }
 
-    private fun ejectCard(channel: HealthCardChannel) {
-        logger.info("[${cardTerminal.name}] Ejecting card")
+    private fun ejectCard(terminal: CardTerminal, channel: HealthCardChannel) {
+        logger.info("[${terminal.name}] Ejecting card")
         channel.transmit(APDUCommands.EJECT_CARD)
     }
 
     /**
      * Start the event listener for card insertion
      */
-    private fun startEventListenerForCardInsertion() {
+    private fun startEventListenerForCardInsertion(cardTerminal: CardTerminal) {
         val thread = Thread {
             while (cardTerminal.waitForCardPresent(0)) {
                 try {
@@ -154,15 +180,9 @@ class HealthCardReader
                     /**
                      * Fetch information from smartcard if not disabled
                      */
-                    val generation: HealthCardGeneration? = disableGeneration.let { disabled ->
-                        if (disabled) null else channel.getCardGeneration()
-                    }
-                    val patientData: PatientData? = disablePatientData.let { disabled ->
-                        if (disabled) null else getPatientData(channel)
-                    }
-                    val insuranceData: InsuranceData? = disableInsuranceData.let { disabled ->
-                        if (disabled) null else getInsuranceData(channel)
-                    }
+                    val generation: HealthCardGeneration = channel.getCardGeneration()
+                    val patientData: PatientData = getPatientData(channel)
+                    val insuranceData: InsuranceData = getInsuranceData(channel)
                     //fire the onCardReadSuccess event
                     this.eventListeners.forEach {
                         it.onCardReadDataSuccessfully(
@@ -172,7 +192,7 @@ class HealthCardReader
                         )
                     }
                     //eject card
-                    this.ejectCard(channel)
+                    this.ejectCard(cardTerminal, channel)
                     cardTerminal.waitForCardAbsent(0)
                     logger.info("[${cardTerminal.name}] Card removed")
                     this.eventListeners.forEach { it.onCardRemoved() }
@@ -186,10 +206,6 @@ class HealthCardReader
         }
         this.thread = thread
         thread.start()
-    }
-
-    fun getCardTerminal(): CardTerminal {
-        return this.cardTerminal
     }
 
 
