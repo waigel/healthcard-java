@@ -7,6 +7,6 @@ interface HealthCardReaderEvents {
     fun onCardInserted()
     fun onCardRemoved()
     fun onCardReadError(e: Exception)
-    fun onCardReadDataSuccessfully(patient: PatientData, insurance: InsuranceData, generation: HealthCardGeneration)
+    fun onCardReadDataSuccessfully(patient: PatientData?, insurance: InsuranceData?, generation: HealthCardGeneration?)
 
 }

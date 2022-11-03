@@ -32,6 +32,9 @@ class HealthCardChannel() : CardChannel() {
     fun getVersion(command: CommandAPDU): String {
         val response = this.transmit(command)
         val unpackBcd = BcdHelper.unpackBcd(response.data)
+        if (unpackBcd.size != 10) {
+            throw HealthCardException("Invalid version response")
+        }
         val part1 = BcdHelper.bcdToDecimal(unpackBcd.copyOfRange(0, 3))
         val part2 = BcdHelper.bcdToDecimal(unpackBcd.copyOfRange(3, 6))
         val part3 = BcdHelper.bcdToDecimal(unpackBcd.copyOfRange(6, 10))
