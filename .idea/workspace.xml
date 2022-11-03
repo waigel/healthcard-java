@@ -5,14 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="cc782cc4-3cb7-4105-83d2-502f9a7b1dce" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/com/waigel/healthcard/exceptions/HealthCardExceptionJava.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/waigel/healthcard/HealthCardChannel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/waigel/healthcard/HealthCardChannel.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/waigel/healthcard/HealthCardReader.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/waigel/healthcard/HealthCardReader.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/waigel/healthcard/HealthCardReaderEvents.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/waigel/healthcard/HealthCardReaderEvents.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/waigel/healthcard/exceptions/HealthCardException.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/waigel/healthcard/exceptions/HealthCardException.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/module-info.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/module-info.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -150,7 +142,7 @@
       <recent name="com.waigel.healthcard.smartcard" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.healthcard-java [jar]">
+  <component name="RunManager" selected="Gradle.healthcard-java [publish]">
     <configuration name="healthcard-java [build]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -265,10 +257,10 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Gradle.healthcard-java [publish]" />
         <item itemvalue="Gradle.healthcard-java [jar]" />
         <item itemvalue="Gradle.healthcard-java [fatJar]" />
         <item itemvalue="Gradle.healthcard-java [build]" />
-        <item itemvalue="Gradle.healthcard-java [publish]" />
         <item itemvalue="Gradle.healthcard-java [javadocJar2]" />
       </list>
     </recent_temporary>
@@ -282,7 +274,7 @@
       <option name="presentableId" value="Default" />
       <updated>1667341336860</updated>
       <workItem from="1667341338019" duration="25830000" />
-      <workItem from="1667396295971" duration="18284000" />
+      <workItem from="1667396295971" duration="20565000" />
     </task>
     <servers />
   </component>

@@ -5,6 +5,5 @@ module kotlin {
     requires java.smartcardio;
     requires org.json;
     requires com.fasterxml.jackson.databind;
-    requires annotations;
     exports com.waigel.healthcard.exceptions;
 }
